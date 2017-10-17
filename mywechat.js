@@ -1,3 +1,5 @@
+// wechat menu and etc.
+
 function create(api) {
 	const menu = {
 		button: [

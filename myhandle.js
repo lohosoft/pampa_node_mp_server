@@ -1,17 +1,12 @@
-const config = {
-	token: "IK2l2L4o3uTpt58LAxsM7EgAntGrR9YW",
-	appid: "wx49646136f945d3d4",
-	encodingAESKey: "J1x0YwCotXSF2sI0tQL9Z9AGNXIzgfeYRdmo9WC8a2J",
-	appsecret: "ccb0f0a4d2e8a0d3b82cdc1b8c4fe0ce"
-};
+const MyConfig = require("./myconfig.js");
 
 const url = require("url");
 
 const getTokenUrl =
 	"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" +
-	config.appid +
+	MyConfig.appid +
 	"&secret=" +
-	config.appsecret;
+	MyConfig.appsecret;
 const fetch = require("node-fetch");
 
 const store = {};

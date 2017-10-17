@@ -2,6 +2,7 @@ const WeChat = require("wechat");
 const WeChatAPI = require("wechat-api");
 const args = require("yargs").argv;
 console.log(args.port);
+const MyConfig = require("./myconfig.js");
 const MyLog = require("./mylog.js");
 const MyHandle = require("./myhandle.js");
 const MyWechat = require("./mywechat.js");
@@ -9,15 +10,17 @@ const express = require("express");
 const app = express();
 
 const config = {
-	token: "IK2l2L4o3uTpt58LAxsM7EgAntGrR9YW",
-	appid: "wx49646136f945d3d4",
-	encodingAESKey: "J1x0YwCotXSF2sI0tQL9Z9AGNXIzgfeYRdmo9WC8a2J",
-	appsecret: "ccb0f0a4d2e8a0d3b82cdc1b8c4fe0ce",
-	checkSignature: true
+	token: MyConfig.token,
+	appid: MyConfig.appid,
+	encodingAESKey: MyConfig.encodingAESKey,
+	appsecret: MyConfig.appsecret,
+	checkSignature: MyConfig.checkSignature
 };
 
-const api = new WeChatAPI(config.appid, config.appsecret);
+// set menu
+const api = new WeChatAPI(MyConfig.appid, MyConfig.appsecret);
 MyWechat.create(api);
+
 app.use(express.query());
 app.use(
 	"/",
