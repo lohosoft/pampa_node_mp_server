@@ -1,0 +1,29 @@
+{
+  "name": "pampa_node_mp_server",
+  "version": "1.0.0",
+  "description": "wechat api server for pampa mp",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lohosoft/pampa_node_mp_server.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lohosoft/pampa_node_mp_server/issues"
+  },
+  "homepage": "https://github.com/lohosoft/pampa_node_mp_server#readme",
+  "dependencies": {
+    "express": "^4.16.2",
+    "koa": "^2.3.0",
+    "nodemon": "^1.12.1",
+    "sha1": "^1.1.1",
+    "wechat": "^2.1.0",
+    "winston": "^2.4.0",
+    "winston-logrotate": "^1.3.0",
+    "yargs": "^9.0.1"
+  }
+}
