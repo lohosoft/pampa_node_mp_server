@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/lohosoft/pampa_node_mp_server#readme",
   "dependencies": {
+    "async": "^2.5.0",
+    "download": "^6.2.5",
     "express": "^4.16.2",
     "koa": "^2.3.0",
     "node-fetch": "^1.7.3",

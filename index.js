@@ -17,8 +17,9 @@ const config = {
 	checkSignature: MyConfig.checkSignature
 };
 
-// set menu
 const api = new WeChatAPI(MyConfig.appid, MyConfig.appsecret);
+
+// set menu
 MyWechat.create(api);
 
 app.use(express.query());
@@ -26,6 +27,8 @@ app.use(
 	"/",
 	WeChat(config, function(req, res, next) {
 		var message = req.weixin;
+
+		// pass wechat api for more control handle like video
 		MyHandle.handle(message, req, res);
 	})
 );
