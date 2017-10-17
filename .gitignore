@@ -1,6 +1,6 @@
 # config file not tu github for security
+myconfig.*
 mymyconfig.*
-
 # Logs
 logs
 *.log
