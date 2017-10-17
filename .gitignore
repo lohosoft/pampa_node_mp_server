@@ -3,7 +3,7 @@ myconfig.*
 mymyconfig.*
 
 # static files
-/s
+/s/*.*
 
 # Logs
 logs
