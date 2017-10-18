@@ -110,8 +110,10 @@ function handle(message, req, res) {
 				res.reply([
 					{
 						title: "你拍一我拍一",
-						description: "拍一张照片/一段视频，不知道谁会看到。\n看一张照片／一段视频，不知道是谁拍的。",
-						picurl: uitiReplyPicUrl
+						description:
+							"发一份照片/视频/语音，不知道谁会收到。\n收一份照片/视频/语音，不知道是谁发的。",
+						picurl: uitiReplyPicUrl,
+						url: "http://mp.weixin.qq.com/s/xGG4QTVOwWG20UaojK7Hbw"
 					}
 				]);
 			} else {
