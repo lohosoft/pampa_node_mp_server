@@ -1,3 +1,5 @@
+const MyConfig = require("./myconfig.js");
+
 const winston = require("winston");
 // require("winston-daily-rotate-file");
 require("winston-logrotate");
@@ -35,12 +37,16 @@ function init(
 // logger.info('Hello World!');
 
 function error(error) {
-	console.log("============= error : ", error);
+	if (MyConfig.dev) {
+		console.log("============= error : ", error);
+	}
 	logger.error(error);
 }
 
 function info(info, data) {
-	console.log("------------- info : ", info, data);
+	if (MyConfig.dev) {
+		console.log("------------- info : ", info, data);
+	}
 }
 exports.init = init;
 exports.error = error;

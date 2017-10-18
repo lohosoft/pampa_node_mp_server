@@ -10,8 +10,8 @@ const MyLog = require("./mylog.js");
 // all path things need handle before deploy =================================  TODO
 const mediaUrlPrefix = "https://lohosoft.cn/pampa/mp/utit/";
 const targetPageUrlPreifx = "https://lohosoft.cn/pampa/mp/index.html?";
-const videoFilePath = "/home/pampa/lohosoft_www/pampa/mp/utit/";
-const thumbFilePath = "/home/pampa/lohosoft_www/pampa/mp/utit/";
+const filePath = "/home/pampa/lohosoft_www/pampa/mp/utit/";
+
 const GetMediaTryTimeLimit = 5;
 const getTokenUrl =
 	"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" +
@@ -19,24 +19,117 @@ const getTokenUrl =
 	"&secret=" +
 	MyConfig.appsecret;
 
+const urlMark = "fvvAiwthsZztYFz8fBaJ";
 const store = {};
 
-store.defaultImgMediaId = "1508240874599";
+store.defaultImgMediaId = "IrPLJs0u5zbNUnkQQCAV1anJL3P5D71fQld2q5dzvxs";
 store.oldImgMediaId = "";
 store.newImgMediaId = "";
 
-store.defaultVideoId = "1508240874599";
+store.defaultVideoId = "default";
 store.oldVideoId = "";
 store.newVideoId = "";
 
-store.defaultVoiceMediaId = "";
+store.defaultVoiceMediaId = "IrPLJs0u5zbNUnkQQCAV1d30AGA164qdikBDXNpkMEM";
 store.oldVoiceMediaId = "";
 store.newVoiceMediaId = "";
 
 store.token = "";
+// marking for deleting file running
+store.deleting = false;
 
 const uitiReplyPicUrl = "http://lohosoft.cn/pampa/mp/pics/eagle_utit.png"; // move to static path ================  TODO
 
+// external api =====================================
+function handle(message, req, res) {
+	// MyLog.info("message : ", message);
+	type = message.MsgType;
+	switch (type) {
+		case "text":
+			res.reply("");
+			break;
+		case "image":
+			let mediaIdImg = message.MediaId;
+			MyLog.info("image id ", mediaIdImg);
+			store.newImgMediaId = mediaIdImg;
+			if (store.oldImgMediaId === "") {
+				store.oldImgMediaId = store.defaultImgMediaId;
+			}
+			res.reply({
+				type: "image",
+				content: {
+					mediaId: store.oldImgMediaId
+				}
+			});
+			store.oldImgMediaId = store.newImgMediaId;
+			break;
+		case "voice":
+			// ToUserName: 'gh_e96ffe097709',
+			// 		FromUserName: 'oCUTPjgD7X7b_qVAilDcPG5WRPVw',
+			// 		CreateTime: '1508202454',
+			// 		MsgType: 'voice',
+			// 		MediaId: '-Elk_n77-m8K75-0-_4w6HTtrFXXsV2fiZDljUiHVo3zGYvJmqm1Ot7TqJiJIq8g',
+			// 		Format: 'amr',
+			// 		MsgId: '6477680216100188962',
+			// 		Recognition: ''
+			let mediaIdVoice = message.MediaId;
+			MyLog.info("voice id ", mediaIdVoice);
+			store.newVoiceMediaId = mediaIdVoice;
+			if (store.oldVoiceMediaId === "") {
+				store.oldVoiceMediaId = store.defaultVoiceMediaId;
+			}
+			res.reply({
+				type: "voice",
+				content: {
+					mediaId: store.oldVoiceMediaId
+				}
+			});
+			store.oldVoiceMediaId = store.newVoiceMediaId;
+			break;
+
+		// handle video ===============================
+		case "video":
+			// just reply to finish this conversation and let kefu handle ==================
+			res.reply("");
+			// start from tryTime = 0
+			handleVideo(message, 0);
+			break;
+		// ===================================================  loacation TODO
+		// case "location":
+		// 	let lX = message.Location_X;
+		// 	let lY = message.Location_Y;
+		// 	let label = message.Label;
+		// 	let msgId = message.MsgId;
+		// 	res.reply({ type: "text", content: label });
+		// 	break;
+
+		// handle menu click ===========================
+		// ===========================================================================
+		case "event":
+			if (message.Event === "CLICK" && message.EventKey === "utitBtn") {
+				res.reply([
+					{
+						title: "你拍一我拍一",
+						description: "拍一张照片/一段视频，不知道谁会看到。\n看一张照片／一段视频，不知道是谁拍的。",
+						picurl: uitiReplyPicUrl
+					}
+				]);
+			} else {
+				MyLog.info("error on menu click on other button");
+			}
+			break;
+		default:
+			res.reply({
+				type: "text",
+				content: "hola ~"
+			});
+			break;
+	}
+}
+
+// ===========================================================================
+// internal api
+// =============================================================================
 // get token with callback settoken
 // getToken(setToken);
 
@@ -105,7 +198,7 @@ function doHandleVideo(message, tryTime) {
 						// detect error for token
 						callback(new Error(), "token_error");
 					} else {
-						let fileName = videoFilePath + videoFileId + ".mp4";
+						let fileName = filePath + videoFileId + ".mp4";
 						fs.writeFile(fileName, data, function(err) {
 							// save video to new video file
 							if (err) {
@@ -128,7 +221,7 @@ function doHandleVideo(message, tryTime) {
 						// detect error for token
 						callback(new Error(), "token_error");
 					} else {
-						let fileName = thumbFilePath + videoFileId + ".jpg";
+						let fileName = filePath + videoFileId + ".jpg";
 						fs.writeFile(fileName, data, function(err) {
 							if (err) {
 								MyLog.info("error in writeFile : ", err);
@@ -175,11 +268,14 @@ function errorHandle(reason, message) {
 function handleVideoOk(message) {
 	MyLog.info("handleVideoOk : ", message);
 	let openId = message.FromUserName;
+
+	// for the first time received video only =================================
 	if (store.oldVideoId === "") {
-		store.oldVideoId = store.defaultVideoId + "1";
+		store.oldVideoId = store.defaultVideoId;
 	}
 	let thumbUrl = mediaUrlPrefix + store.oldVideoId + ".jpg";
-	let targetPageUrl = targetPageUrlPreifx + store.oldVideoId;
+	let targetPageUrl =
+		targetPageUrlPreifx + urlMark + store.oldVideoId + urlMark;
 	var articles = [
 		{
 			title: "",
@@ -194,6 +290,11 @@ function handleVideoOk(message) {
 
 function handleVideoOkCB(e) {
 	MyLog.info("handleVideoOkCB result : ", e);
+	if (e === null) {
+		store.oldVideoId = store.newVideoId;
+	} else {
+		MyLog.error("handleVideoOkCB error : ", e);
+	}
 }
 function handleVideoError(message) {
 	MyLog.info("handleVideoError : ", messagse);
@@ -201,114 +302,25 @@ function handleVideoError(message) {
 }
 
 function removeOldVideoThumbFiles() {
-	let oldVideoFile = videoFilePath + store.oldVideoId + ".mp4";
-	let oldThumbFile = thumbFilePath + store.oldVideoId + ".jpg";
+	// according file name compare to Data.now() with expire limitation
+	// remove all expired files =========================================  TODO
+	// read files list
+	// map to delete each expireds files on file list
+	let oldFile = "";
+	MyLog.info("deleting file : ", oldFile);
 
-	// delete files
-	async.waterfall(
-		[
-			// delete video file
-			function(callback) {
-				MyLog.info("deleting file : ", oldVideoFile);
-				fs.unlink(oldVideoFile, function(error) {
-					if (!error) {
-						callback(null);
-					}
-				});
-			},
-			// delete thumb image file
-			function(callback) {
-				MyLog.info("deleting file : ", oldThumbFile);
+	if (!store.deleting) {
+		// do delete =========================
+		store.deleting = true;
 
-				fs.unlink(oldThumbFile, function(error) {
-					if (!error) {
-						callback(null);
-					}
-				});
-			}
-		],
-		function(err, results) {
-			if (err) {
-				if (results === "deletefile_error") {
-					errorHandle("file io delete error", store.oldVideoId);
-				} else {
-					errorHandle("unknown error", store.oldVideoId);
-				}
-			} else {
-				// update store record of video id
-				store.oldVideoId = store.newVideoId;
-			}
-		}
-	);
-}
-// external api =====================================
-function handle(message, req, res) {
-	// MyLog.info("message : ", message);
-	type = message.MsgType;
-	switch (type) {
-		case "text":
-			res.reply("");
-			break;
-		case "image":
-			let mediaIdImg = message.MediaId;
-			store.newImgMediaId = mediaIdImg;
-			res.reply({
-				type: "image",
-				content: {
-					mediaId: store.oldImgMediaId
-				}
-			});
-			store.oldImgMediaId = store.newImgMediaId;
-			break;
-		case "video":
-			// just reply to finish this conversation and let kefu handle ==================
-			res.reply("");
-			// start from tryTime = 0
-			handleVideo(message, 0);
-			break;
-		case "voice":
-			// ======================   TODO
-			// ToUserName: 'gh_e96ffe097709',
-			// 		FromUserName: 'oCUTPjgD7X7b_qVAilDcPG5WRPVw',
-			// 		CreateTime: '1508202454',
-			// 		MsgType: 'voice',
-			// 		MediaId: '-Elk_n77-m8K75-0-_4w6HTtrFXXsV2fiZDljUiHVo3zGYvJmqm1Ot7TqJiJIq8g',
-			// 		Format: 'amr',
-			// 		MsgId: '6477680216100188962',
-			// 		Recognition: ''
-			let mediaIdVoice = message.MediaId;
-			res.reply({ type: "voice", content: { mediaId: mediaIdVoice } });
-			break;
-		// ===================================================  loacation TODO
-		// case "location":
-		// 	let lX = message.Location_X;
-		// 	let lY = message.Location_Y;
-		// 	let label = message.Label;
-		// 	let msgId = message.MsgId;
-		// 	res.reply({ type: "text", content: label });
-		// 	break;
+		// fs.unlink(oldFile, function(error) {
+		// 	if (!error) {
+		// 		callback(null);
+		// 	}
+		// });
 
-		// handle menu click ===========================
-		// ===========================================================================
-		case "event":
-			if (message.Event === "CLICK" && message.EventKey === "utitBtn") {
-				res.reply([
-					{
-						title: "你拍一我拍一",
-						description: "拍一张照片，不知道谁会看到。\n看一张照片，不知道是谁拍的。",
-						picurl: uitiReplyPicUrl
-					}
-				]);
-			} else {
-				MyLog.info("error on menu click on other button");
-			}
-			break;
-		default:
-			res.reply({
-				type: "text",
-				content: "hola ~"
-			});
-			break;
+		// all deleted ========================
+		store.deleting = false;
 	}
 }
 
